@@ -15,51 +15,70 @@ class TimeTableExcelParser:
     def parse_to_json(self):
         pass
 
-    def convert_to_dataclass(path):
+    def convert_to_dataclass(self, path):
         table = pd.ExcelFile(path)
         df1 = table.parse(table.sheet_names)
         inp = df1.get('Raspisanie').values.tolist()
-        f_st = inp[0][0]
-        w = f_st[14:16]
-        if w[1]==' ':
-          num = int (w[0])
-        else :
-          num = int (w[0])*10 + int (w[1])
 
-        time_start=[]
-        time_finish=[]
+        num = get_number_week(inp[0][0])
 
-        for i in range(0, 1):
-          for st in range(3,10):
-            ll = inp[st][i][7:]
-            index = int (str.find(ll,' ',))
-            time_start.append(ll[1:index])
-            time_finish.append(ll[index+3:])
-        weeks=[]
-        for day in range(1, 7):
-          name=[]
-          class_order=[]
-          for line in range(3,10):
-            if inp[line][day]!='nan':
-              stringf = clear_stringf(str (inp[line][day]))
-              name.append(stringf[1:])
-          weeks.append(name)
+        time_start, time_finish = get_time(inp)
+
+        weeks = get_weeks(inp)
+
+        week_info = get_week_info(inp, time_start, time_finish, weeks)
+
+        Upper = Timetable(week=num, timatable_days=week_info)
+        return Upper
+
+    def get_week_info(self, inp, time_start, time_finish, weeks):
         week_info = []
         for i in range(0, 6):
-          day_info = []
-          for el in range(0, 7):
-            element = TimetableObject(time_start=time_start[el], time_finish=time_finish[el], name=weeks[i][el], class_order=el)
-            day_info.append(element)
-          k = StudyDay(day_info)
-          week_info.append(k)
-        Upper = Timetable( week=num, timatable_days= week_info)
-        pass
+            day_info = []
+            for el in range(0, 7):
+                element = TimetableObject(time_start=time_start[el], time_finish=time_finish[el], name=weeks[i][el],
+                                          class_order=el)
+                day_info.append(element)
+            k = StudyDay(day_info)
+            week_info.append(k)
+        return week_info
 
-    def clear_stringf(s):
-      for i in range(0,len(s)):
-        if s[i]=='\n':
-          s = s[0:i] + ' ' + s[i+1:];
-      return s
+    def get_weeks(self, inp):
+        weeks = []
+        for day in range(1, 7):
+            name = []
+            class_order = []
+            for line in range(3, 10):
+                if inp[line][day] != 'nan':
+                    stringf = clear_stringf(str(inp[line][day]))
+                    name.append(stringf[1:])
+            weeks.append(name)
+        return weeks
+
+    def get_time(self, inp):
+        time_start = []
+        time_finish = []
+        for i in range(0, 1):
+            for st in range(3, 10):
+                ll = inp[st][i][7:]
+                index = int(str.find(ll, ' ', ))
+                time_start.append(ll[1:index])
+                time_finish.append(ll[index + 3:])
+        return time_start, time_finish
+
+    def get_number_week(self, f_st):
+        w = f_st[14:16]
+        if w[1] == ' ':
+            num = int(w[0])
+        else:
+            num = int(w[0]) * 10 + int(w[1])
+        return num
+
+    def clear_stringf(self, s):
+        for i in range(0, len(s)):
+            if s[i] == '\n':
+                s = s[0:i] + ' ' + s[i + 1:];
+        return s
 
 
 class SheduleType(Enum):
