@@ -4,7 +4,8 @@ from typing import List, Dict
 
 @dataclass
 class TimetableObject:
-    time: str
+    time_start: str
+    time_finish: str
     name: str
     class_order: int
 
